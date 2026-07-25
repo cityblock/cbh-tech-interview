@@ -14,10 +14,10 @@ importers:
   .:
     devDependencies:
       '@eslint/js':
-        specifier: ^9.18.0
+        specifier: ^9.39.4
         version: 9.39.4
       eslint:
-        specifier: ^9.18.0
+        specifier: ^9.39.4
         version: 9.39.4
       eslint-plugin-react:
         specifier: ^7.37.4
