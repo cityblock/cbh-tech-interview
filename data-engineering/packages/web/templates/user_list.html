@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h1>Users</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Available days</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.firstName }} {{ u.lastName }}</td>
+        <td>{{ u.phoneNumber }}</td>
+        <td>
+          {% for d in u.availability.availableDays %}
+          <span class="badge">{{ d }}</span>
+          {% endfor %}
+        </td>
+        <td><a href="/users/{{ u.id }}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

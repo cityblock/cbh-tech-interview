@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% set DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+
+{% block content %}
+<div class="container">
+  <h1>Edit: {{ user.firstName }} {{ user.lastName }}</h1>
+  <form class="card" method="post" action="/users/{{ user.id }}">
+    <label>
+      <span>Phone number</span>
+      <input type="text" name="phoneNumber" value="{{ user.phoneNumber }}" />
+    </label>
+    <div>
+      <span style="font-weight: 600; display: block; margin-bottom: 0.5rem">Available days</span>
+      <div class="days">
+        {% for d in DAYS %}
+        <label>
+          <input
+            type="checkbox"
+            name="availableDays"
+            value="{{ d }}"
+            {{ 'checked' if d in user.availability.availableDays else '' }}
+          />
+          {{ d }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    <div style="margin-top: 1.5rem">
+      <button type="submit">Save</button>
+      <a href="/" class="secondary" style="margin-left: 0.5rem">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -29,9 +29,9 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "W"]
-# The data model and GraphQL surface mirror the software-engineering track
-# field for field, so columns and resolver fields are camelCase by necessity.
-ignore = ["N815"]
+# The data model, GraphQL surface and form fields mirror the
+# software-engineering track name for name, so they are camelCase by necessity.
+ignore = ["N803", "N815"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["server", "web"]
