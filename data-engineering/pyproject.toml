@@ -24,6 +24,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["packages/server", "packages/web"]
 
+[tool.pytest.ini_options]
+testpaths = ["packages/server/test"]
+
 [tool.ruff]
 line-length = 100
 
