@@ -9,6 +9,7 @@ coverage
 .pytest_cache
 .ruff_cache
 
-# Local SQLite database (persisted dev state)
-data/
+# Local SQLite database (persisted dev state), but keep ETL fixtures tracked.
+data/*
+!data/fixtures/
 *.sqlite

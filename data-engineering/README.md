@@ -30,6 +30,17 @@ rm data/app.sqlite          # or keep a backup: mv data/app.sqlite data/app.sqli
 uv run dev
 ```
 
+### Ingesting partner feeds
+
+`uv run etl` runs the availability ETL pipeline against every file in `data/fixtures/` — two partner feeds in different formats (`partner_a.csv`, `partner_b.json`), each with a few intentionally malformed rows. It stages every row it reads into `raw_availability_events` (an append-only log, so re-running is safe), validates and normalizes each one, then upserts the valid rows into `users` keyed on phone number — the same person arriving from two feeds lands as one row, not a duplicate:
+
+```bash
+uv run etl
+uv run etl data/fixtures/partner_a.csv   # or ingest a specific file
+```
+
+The command prints how many rows were staged, loaded, and rejected, plus a reason for each rejection.
+
 ### Configuration
 
 | Env var   | Default           | What it does                                                        |
@@ -57,6 +68,15 @@ packages/
 - `packages/server/db/seeds/users.py` — seeded users
 - `packages/server/db/engine.py` — engine configuration
 
+**ETL**
+
+- `packages/server/etl/extract.py` — parses partner feed files into raw records
+- `packages/server/etl/transform.py` — validates and normalizes phone numbers and availability days
+- `packages/server/etl/load.py` — stages every row, then upserts the valid ones into `users` keyed on phone number
+- `packages/server/etl/pipeline.py` — orchestrates extract → stage → load, and is the `etl` CLI entry point
+- `packages/server/db/migrations/versions/0002_raw_availability_events.py` — staging table
+- `data/fixtures/` — partner feed fixtures (`partner_a.csv`, `partner_b.json`), git-tracked
+
 **Web**
 
 - `packages/web/templates/user_list.html` — list view
@@ -68,6 +88,7 @@ packages/
 | Command                 | What it does                                     |
 | ----------------------- | ------------------------------------------------ |
 | `uv run dev`            | Runs the app and GraphQL endpoint on `:4000`     |
+| `uv run etl [<path>…]`  | Runs the availability ETL, default input `data/fixtures/` |
 | `uv run pytest`         | Runs the test suite                              |
 | `uv run ruff check .`   | Lints                                            |
 | `uv run ruff format .`  | Formats                                          |
@@ -77,5 +98,5 @@ packages/
 
 This track is a Python mirror of `software-engineering/`, and the exercise content is meant to be swapped out. The seam sits here:
 
-- **Exercise-specific**, replace freely: `packages/server/types.py`, `packages/server/resolvers/`, `packages/server/db/models.py`, `packages/server/db/migrations/versions/`, `packages/server/db/seeds/`, `packages/web/templates/`, `packages/server/test/test_user.py`, and `PRD.md`.
+- **Exercise-specific**, replace freely: `packages/server/types.py`, `packages/server/resolvers/`, `packages/server/db/models.py`, `packages/server/db/migrations/versions/`, `packages/server/db/seeds/`, `packages/server/etl/`, `data/fixtures/`, `packages/web/templates/`, `packages/server/test/test_user.py`, `packages/server/test/test_etl.py`, and `PRD.md`.
 - **Plumbing**, expected to survive a swap: `pyproject.toml`, `alembic.ini`, `packages/server/index.py`, `packages/server/context.py`, `packages/server/schema.py`, `packages/server/db/engine.py`, `packages/server/db/migrate.py`, `packages/server/db/seed.py`, `packages/web/routes.py`, `packages/web/client.py`, and `packages/server/test/conftest.py`.

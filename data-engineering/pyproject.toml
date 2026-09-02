@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 dev = "server.index:dev"
+etl = "server.etl.pipeline:main"
 
 [build-system]
 requires = ["hatchling"]
