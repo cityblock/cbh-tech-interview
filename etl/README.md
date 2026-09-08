@@ -27,7 +27,7 @@ each rejection.
 The default run ingests `data/fixtures/partner_a.csv`, which includes a few
 intentionally malformed rows. An additional feed ships unwired:
 
-- `data/fixtures/partner_c.csv` — schedule windows with start/end times (many
+- `data/fixtures/partner_b.csv` — schedule windows with start/end times (many
   outside the org's historical 9am–5pm ET window) plus one-off blocked date
   ranges (vacations, conferences). The file also includes planted data-quality
   issues: malformed dates, bad phone numbers, and invalid day names. The
@@ -37,7 +37,7 @@ intentionally malformed rows. An additional feed ships unwired:
   `{ availableDays: string[] }` model in the root app.
 
 ```bash
-uv run etl data/fixtures/partner_c.csv
+uv run etl data/fixtures/partner_b.csv
 ```
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common

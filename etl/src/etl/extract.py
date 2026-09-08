@@ -1,7 +1,7 @@
 """Parsers that turn partner feed files into `RawAvailabilityRecord`s.
 
 The active feed (`partner_a`) is CSV. A JSON parser is also registered for
-`.json` files if you pass one explicitly. `partner_c` is a second CSV shape
+`.json` files if you pass one explicitly. `partner_b` is a second CSV shape
 with schedule windows and blocked-date columns. Parsing only pulls fields out
 of whatever shape the file has — it does not validate or normalize them. That happens in `transform.py`, once a row has been staged, so
 a parse failure and a validation failure are never confused with each other.
