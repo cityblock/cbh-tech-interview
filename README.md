@@ -43,7 +43,10 @@ pnpm dev
 packages/
   server/   GraphQL Yoga + Knex (better-sqlite3, file-backed)
   web/      Vite + React 18 + Apollo Client
+etl/        Standalone Python pipeline that ingests partner feeds into `users`
 ```
+
+See [`etl/README.md`](./etl/README.md) for the ETL pipeline.
 
 ### Where to look
 
