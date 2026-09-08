@@ -16,7 +16,7 @@ with `DB_FILE` — so ingested rows show up immediately when you run `pnpm dev`.
 ```bash
 uv sync
 uv run etl                          # ingests every file in data/fixtures/
-uv run etl data/fixtures/partner_a.csv   # or ingest specific files
+uv run etl data/fixtures/sched_self_serv_app.csv   # or ingest specific files
 ```
 
 It prints how many rows were staged, loaded, and rejected, plus a reason for
@@ -24,10 +24,10 @@ each rejection.
 
 ## What it does
 
-The default run ingests `data/fixtures/partner_a.csv`, which includes a few
+The default run ingests `data/fixtures/sched_self_serv_app.csv`, which includes a few
 intentionally malformed rows. An additional feed ships unwired:
 
-- `data/fixtures/partner_b.csv` — schedule windows with start/end times (many
+- `data/fixtures/scheds_pract_mgr.csv` — schedule windows with start/end times (many
   outside the org's historical 9am–5pm ET window) plus one-off blocked date
   ranges (vacations, conferences). The file also includes planted data-quality
   issues: malformed dates, bad phone numbers, and invalid day names. The
@@ -37,7 +37,7 @@ intentionally malformed rows. An additional feed ships unwired:
   `{ availableDays: string[] }` model in the root app.
 
 ```bash
-uv run etl data/fixtures/partner_b.csv
+uv run etl data/fixtures/scheds_pract_mgr.csv
 ```
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
