@@ -25,10 +25,8 @@ each rejection.
 ## What it does
 
 The default run ingests `data/fixtures/partner_a.csv`, which includes a few
-intentionally malformed rows. Two additional feeds ship unwired:
+intentionally malformed rows. An additional feed ships unwired:
 
-- `data/fixtures/partner_b.json` — nested JSON with a different shape than the
-  CSV (`contact` object, `availableDays` array).
 - `data/fixtures/partner_c.csv` — schedule windows with start/end times (many
   outside the org's historical 9am–5pm ET window) plus one-off blocked date
   ranges (vacations, conferences). The file also includes planted data-quality

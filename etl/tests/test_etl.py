@@ -42,11 +42,21 @@ class TestExtract:
         assert marie.phone_number == "(555) 555-0201"
         assert marie.availability_raw == ["Mon", "Wed", "Fri"]
 
-    def test_parses_json_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "partner_b.json")
-        assert len(records) == 4
-        wu = next(r for r in records if r.last_name == "Wu")
-        assert wu.source == "partner_b"
+    def test_parses_json_feed(self, tmp_path: Path) -> None:
+        feed = tmp_path / "partner.json"
+        feed.write_text(
+            """[
+  {
+    "contact": { "first": "Chien-Shiung", "last": "Wu" },
+    "phoneNumber": "+1 (555) 555-0205",
+    "availableDays": ["Tuesday", "Thursday"]
+  }
+]"""
+        )
+        records = extract(feed)
+        assert len(records) == 1
+        wu = records[0]
+        assert wu.source == "partner"
         assert wu.first_name == "Chien-Shiung"
         assert wu.availability_raw == ["Tuesday", "Thursday"]
 
@@ -108,13 +118,13 @@ class TestIngestFixtures:
         assert carson is None
 
     def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_b.json"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_c.csv"], db_file)
         conn = connect(db_file)
         rejected = conn.execute(
             "SELECT id, phone_number, error FROM raw_availability_events WHERE status = 'rejected'"
         ).fetchall()
 
-        assert result.rejected == 2
+        assert result.rejected == 4
         for row in rejected:
             assert row["phone_number"] not in (row["error"] or "")
             assert row["phone_number"] not in " ".join(result.errors)
