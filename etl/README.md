@@ -24,17 +24,17 @@ each rejection.
 
 ## What it does
 
-The default run ingests `data/fixtures/sched_self_serv_app.csv`, which includes a few
-intentionally malformed rows. An additional feed ships unwired:
+The default run ingests `data/fixtures/sched_self_serv_app.csv` — nurse
+availability exported from the self-service app (`first_name`, `last_name`,
+`phone`, `days`).
 
-- `data/fixtures/scheds_pract_mgr.csv` — schedule windows with start/end times (many
-  outside the org's historical 9am–5pm ET window) plus one-off blocked date
-  ranges (vacations, conferences). The file also includes planted data-quality
-  issues: malformed dates, bad phone numbers, and invalid day names. The
-  scaffold parser only extracts day names; hours, time zones, and `blocked_dates`
-  are preserved in `raw_payload` but dropped on load. Wiring this feed up without
-  losing that detail is the stretch exercise — it mirrors extending the legacy
-  `{ availableDays: string[] }` model in the root app.
+A second feed is also available:
+
+- `data/fixtures/scheds_pract_mgr.csv` — nurse availability submitted by clinic
+  practice managers (`first_name`, `last_name`, `phone`, `timezone`,
+  `schedule_windows`, `blocked_dates`). Schedule windows use
+  `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
+  `start:end:reason`.
 
 ```bash
 uv run etl data/fixtures/scheds_pract_mgr.csv
