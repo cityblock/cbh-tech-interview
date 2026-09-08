@@ -35,10 +35,10 @@ class TestTransform:
 
 class TestExtract:
     def test_parses_csv_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "partner_a.csv")
+        records = extract(FIXTURES_DIR / "sched_self_serv_app.csv")
         assert len(records) == 4
         marie = next(r for r in records if r.last_name == "Curie")
-        assert marie.source == "partner_a"
+        assert marie.source == "sched_self_serv_app"
         assert marie.phone_number == "(555) 555-0201"
         assert marie.availability_raw == ["Mon", "Wed", "Fri"]
 
@@ -61,22 +61,22 @@ class TestExtract:
         assert wu.availability_raw == ["Tuesday", "Thursday"]
 
     def test_parses_schedule_csv_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "partner_b.csv")
+        records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
         assert len(records) == 9
         ada = next(r for r in records if r.last_name == "Lovelace")
-        assert ada.source == "partner_b"
+        assert ada.source == "scheds_pract_mgr"
         assert ada.availability_raw == ["Monday", "Wednesday", "Friday"]
         assert '"schedule_windows"' in ada.raw_payload
         assert '"blocked_dates"' in ada.raw_payload
 
     def test_schedule_feed_rejects_rows_with_data_quality_issues(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_b.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
         assert result.staged == 9
         assert result.loaded == 5
         assert result.rejected == 4
 
     def test_raises_for_unregistered_extension(self, tmp_path: Path) -> None:
-        unknown = tmp_path / "partner_b.xml"
+        unknown = tmp_path / "unknown.xml"
         unknown.write_text("<rows />")
         with pytest.raises(ValueError, match="no parser registered"):
             extract(unknown)
@@ -94,19 +94,19 @@ class TestEnsureSchema:
 
 class TestIngestFixtures:
     def test_stages_every_row_regardless_of_validity(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         conn = connect(db_file)
         staged = conn.execute("SELECT COUNT(*) FROM raw_availability_events").fetchone()[0]
         assert staged == 4
 
     def test_loads_only_rows_that_pass_validation(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         assert result.staged == 4
         assert result.rejected == 1
         assert result.loaded == 3
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         conn = connect(db_file)
         rejected = conn.execute(
             "SELECT first_name, last_name FROM raw_availability_events WHERE status = 'rejected'"
@@ -118,7 +118,7 @@ class TestIngestFixtures:
         assert carson is None
 
     def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_b.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
         conn = connect(db_file)
         rejected = conn.execute(
             "SELECT id, phone_number, error FROM raw_availability_events WHERE status = 'rejected'"
@@ -130,8 +130,8 @@ class TestIngestFixtures:
             assert row["phone_number"] not in " ".join(result.errors)
 
     def test_rerunning_ingest_does_not_duplicate_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
-        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
 
         conn = connect(db_file)
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]

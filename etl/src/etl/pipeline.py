@@ -13,7 +13,7 @@ from etl.extract import extract
 from etl.load import IngestResult, load_pending, stage
 
 FIXTURES_DIR = Path(__file__).resolve().parents[2] / "data" / "fixtures"
-DEFAULT_FIXTURES = [FIXTURES_DIR / "partner_a.csv"]
+DEFAULT_FIXTURES = [FIXTURES_DIR / "sched_self_serv_app.csv"]
 
 
 def ingest(paths: list[Path], db_file: str | None = None) -> IngestResult:
