@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+*.egg-info
+
+# The root .gitignore ignores any `data/` directory (for the app's SQLite
+# file); re-include the fixtures this pipeline ships and tracks.
+!data/
+!data/fixtures/
