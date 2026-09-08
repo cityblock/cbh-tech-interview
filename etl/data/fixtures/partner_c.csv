@@ -1,0 +1,10 @@
+first_name,last_name,phone,timezone,schedule_windows,blocked_dates
+Ada,Lovelace,+1 (555) 555-0301,America/New_York,Monday:06:00-14:00;Wednesday:06:00-14:00;Friday:06:00-14:00,2026-09-22:2026-09-26:vacation
+Grace,Hopper,555.555.0302,America/New_York,Tuesday:17:00-21:00;Thursday:17:00-21:00,10/03/2026:10/03/2026:conference
+Katherine,Johnson,+15555550303,America/Los_Angeles,Saturday:07:00-15:00;Sunday:07:00-15:00,
+Mae,Jemison,(555) 555-0304,America/New_York,Monday:20:00-23:59;Tuesday:00:00-02:00,2026-09-08:2026-09-12:vacation
+Alan,Turing,+15555550399,America/New_York,Someday:09:00-17:00,
+Hedy,Lamarr,not-a-phone,America/New_York,Monday:09:00-17:00,2026-10-01:2026-09-28:vacation
+,Carson,555-555-0399,America/New_York,Wednesday:18:00-22:00,2026-13-45:2026-13-50:vacation
+Rachel,Carson,+15555550398,America/New_York,Friday:09:00-17:00,2026-10-10:2026-10-05:pto
+Margaret,Hamilton,555,America/New_York,Tuesday:06:30-10:30,
