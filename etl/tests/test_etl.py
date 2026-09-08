@@ -57,6 +57,16 @@ class TestExtract:
             extract(unknown)
 
 
+class TestEnsureSchema:
+    def test_records_users_migration_for_knex(self, db_file: str) -> None:
+        connect(db_file)
+        conn = connect(db_file)
+        migration = conn.execute(
+            "SELECT name FROM _migrations WHERE name = '0001_users'"
+        ).fetchone()
+        assert migration is not None
+
+
 class TestIngestFixtures:
     def test_stages_every_row_regardless_of_validity(self, db_file: str) -> None:
         ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)

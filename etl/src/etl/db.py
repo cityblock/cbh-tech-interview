@@ -24,6 +24,13 @@ def connect(db_file: str | None = None) -> sqlite3.Connection:
 
 
 def ensure_schema(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS _migrations (
+            name TEXT PRIMARY KEY
+        )
+        """
+    )
     # Mirrors `packages/server/src/db/migrations/0001_users.ts`; created here
     # too so the ETL can run standalone before the app has ever booted.
     conn.execute(
@@ -36,6 +43,9 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
             availability TEXT NOT NULL
         )
         """
+    )
+    conn.execute(
+        "INSERT OR IGNORE INTO _migrations (name) VALUES ('0001_users')"
     )
     # Append-only ingestion log populated by this package. Every row a
     # partner feed produces is staged here first, whether or not it ends up
