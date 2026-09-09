@@ -1,8 +1,7 @@
 # Availability ETL
 
-A standalone Python pipeline that ingests partner availability feeds into the
-`users` table used by the [web app](../packages/README.md) (`packages/server`,
-file-backed SQLite).
+A standalone Python pipeline that ingests nurse availability feeds into the
+`users` table.
 
 ## Prereqs
 
@@ -13,36 +12,16 @@ file-backed SQLite).
 
 ```bash
 uv sync
-uv run etl                          # ingests the default fixture feed
-uv run etl data/fixtures/partner_b.csv   # or ingest specific files
+uv run etl data/fixtures/partner_b.csv  # ingest specific files
 ```
 
-It prints how many rows were staged, loaded, and rejected, plus a reason for
+This prints how many rows were staged, loaded, and rejected, plus a reason for
 each rejection.
 
 ## How it fits together
 
 ```mermaid
-flowchart TB
-  subgraph feeds["Partner feeds (data/fixtures/)"]
-    partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]
-  end
-
-  subgraph pipeline["ETL pipeline"]
-    direction LR
-    extract["extract.py"]
-    record["RawAvailabilityRecord"]
-    transform["transform.py"]
-    load["load.py"]
-    extract --> record --> transform --> load
-  end
-
-  subgraph db["SQLite users table"]
-    users["users"]
-  end
-
-  partner_a --> extract
-  load -->|"upsert by normalized phone"| users
+flowchart TB subgraph feeds["Partner feeds (data/fixtures/)"] partner_a["partner_a.csv<br/>first_name, last_name, phone, days"] end subgraph pipeline["ETL pipeline"] direction LR extract["extract.py"] record["RawAvailabilityRecord"] transform["transform.py"] load["load.py"] extract --> record --> transform --> load end subgraph db["SQLite users table"] users["users"] end partner_a --> extract load -->|"upsert by normalized phone"| users
 ```
 
 Partner files stay in their native shape on disk. The pipeline parses each row
@@ -66,11 +45,10 @@ The default run ingests `data/fixtures/partner_a.csv` — a simple partner feed
 with `first_name`, `last_name`, `phone`, and `days` (`Day` segments separated
 by `;`).
 
-A second feed is also available:
+A second, more complex feed is also available:
 
-- `data/fixtures/partner_b.csv` — nurse availability submitted by clinic
-  practice managers (`first_name`, `last_name`, `phone`, `timezone`,
-  `schedule_windows`, `blocked_dates`). Schedule windows use
+- `data/fixtures/partner_b.csv` — with `first_name`, `last_name`, `phone`, `timezone`,
+  `schedule_windows`, and `blocked_dates`. Schedule windows use
   `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
   `start:end:reason`.
 
