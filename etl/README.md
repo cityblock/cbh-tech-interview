@@ -1,10 +1,8 @@
 # Availability ETL
 
 A standalone Python pipeline that ingests partner availability feeds into the
-`users` table used by the [root app](../README.md) (`packages/server`,
-file-backed SQLite). It reads and writes the **same** `data/app.sqlite` file
-the Node server uses — by default `packages/server/data/app.sqlite`, override
-with `DB_FILE` — so ingested rows show up immediately when you run `pnpm dev`.
+`users` table used by the [web app](../packages/README.md) (`packages/server`,
+file-backed SQLite).
 
 ## Prereqs
 
