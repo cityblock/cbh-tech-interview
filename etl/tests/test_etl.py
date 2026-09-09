@@ -61,16 +61,16 @@ class TestExtract:
         assert wu.availability_raw == ["Tuesday", "Thursday"]
 
     def test_parses_schedule_csv_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
+        records = extract(FIXTURES_DIR / "partner_b.csv")
         assert len(records) == 9
         ada = next(r for r in records if r.last_name == "Lovelace")
-        assert ada.source == "scheds_pract_mgr"
+        assert ada.source == "partner_b"
         assert ada.availability_raw == ["Monday", "Wednesday", "Friday"]
         assert '"schedule_windows"' in ada.raw_payload
         assert '"blocked_dates"' in ada.raw_payload
 
     def test_schedule_feed_rejects_rows_with_data_quality_issues(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_b.csv"], db_file)
         assert result.staged == 9
         assert result.loaded == 5
         assert result.rejected == 4
@@ -104,7 +104,7 @@ class TestIngestFixtures:
         assert result.loaded == 4
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_b.csv"], db_file)
         conn = connect(db_file)
         rejected_carson = conn.execute(
             "SELECT id FROM users WHERE phoneNumber = ?", ("+15555550399",)
@@ -114,8 +114,8 @@ class TestIngestFixtures:
         assert rejected_carson is None
 
     def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
-        records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
-        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
+        records = extract(FIXTURES_DIR / "partner_b.csv")
+        result = ingest([FIXTURES_DIR / "partner_b.csv"], db_file)
         rejected_phones = {
             record.phone_number
             for record in records
