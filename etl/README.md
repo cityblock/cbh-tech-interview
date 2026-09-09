@@ -13,8 +13,8 @@ file-backed SQLite).
 
 ```bash
 uv sync
-uv run etl                          # ingests every file in data/fixtures/
-uv run etl data/fixtures/sched_self_serv_app.csv   # or ingest specific files
+uv run etl                          # ingests the default fixture feed
+uv run etl data/fixtures/scheds_pract_mgr.csv   # or ingest specific files
 ```
 
 It prints how many rows were staged, loaded, and rejected, plus a reason for
@@ -22,21 +22,11 @@ each rejection.
 
 ## What it does
 
-The default run ingests `data/fixtures/sched_self_serv_app.csv` — nurse
-availability exported from the self-service app (`first_name`, `last_name`,
-`phone`, `days`).
-
-A second feed is also available:
-
-- `data/fixtures/scheds_pract_mgr.csv` — nurse availability submitted by clinic
-  practice managers (`first_name`, `last_name`, `phone`, `timezone`,
-  `schedule_windows`, `blocked_dates`). Schedule windows use
-  `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
-  `start:end:reason`.
-
-```bash
-uv run etl data/fixtures/scheds_pract_mgr.csv
-```
+The default run ingests `data/fixtures/scheds_pract_mgr.csv` — nurse
+availability submitted by clinic practice managers (`first_name`, `last_name`,
+`phone`, `timezone`, `schedule_windows`, `blocked_dates`). Schedule windows use
+`Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
+`start:end:reason`.
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
    `RawAvailabilityRecord`, without validating or normalizing anything.
@@ -68,5 +58,5 @@ tests/          — pytest suite
 
 | Command         | What it does                             |
 | --------------- | ----------------------------------------- |
-| `uv run etl`    | Runs the ETL, default input `data/fixtures/` |
+| `uv run etl`    | Runs the ETL against the default fixture feed |
 | `uv run pytest` | Runs the test suite                       |
