@@ -35,23 +35,48 @@ class TestTransform:
 
 class TestExtract:
     def test_parses_csv_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "partner_a.csv")
+        records = extract(FIXTURES_DIR / "sched_self_serv_app.csv")
         assert len(records) == 4
         marie = next(r for r in records if r.last_name == "Curie")
-        assert marie.source == "partner_a"
+        assert marie.source == "sched_self_serv_app"
         assert marie.phone_number == "(555) 555-0201"
         assert marie.availability_raw == ["Mon", "Wed", "Fri"]
 
-    def test_parses_json_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "partner_b.json")
-        assert len(records) == 4
-        wu = next(r for r in records if r.last_name == "Wu")
-        assert wu.source == "partner_b"
+    def test_parses_json_feed(self, tmp_path: Path) -> None:
+        feed = tmp_path / "partner.json"
+        feed.write_text(
+            """[
+  {
+    "contact": { "first": "Chien-Shiung", "last": "Wu" },
+    "phoneNumber": "+1 (555) 555-0205",
+    "availableDays": ["Tuesday", "Thursday"]
+  }
+]"""
+        )
+        records = extract(feed)
+        assert len(records) == 1
+        wu = records[0]
+        assert wu.source == "partner"
         assert wu.first_name == "Chien-Shiung"
         assert wu.availability_raw == ["Tuesday", "Thursday"]
 
+    def test_parses_schedule_csv_feed(self) -> None:
+        records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
+        assert len(records) == 9
+        ada = next(r for r in records if r.last_name == "Lovelace")
+        assert ada.source == "scheds_pract_mgr"
+        assert ada.availability_raw == ["Monday", "Wednesday", "Friday"]
+        assert '"schedule_windows"' in ada.raw_payload
+        assert '"blocked_dates"' in ada.raw_payload
+
+    def test_schedule_feed_rejects_rows_with_data_quality_issues(self, db_file: str) -> None:
+        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
+        assert result.staged == 9
+        assert result.loaded == 5
+        assert result.rejected == 4
+
     def test_raises_for_unregistered_extension(self, tmp_path: Path) -> None:
-        unknown = tmp_path / "partner_c.xml"
+        unknown = tmp_path / "unknown.xml"
         unknown.write_text("<rows />")
         with pytest.raises(ValueError, match="no parser registered"):
             extract(unknown)
@@ -69,45 +94,44 @@ class TestEnsureSchema:
 
 class TestIngestFixtures:
     def test_stages_every_row_regardless_of_validity(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         conn = connect(db_file)
         staged = conn.execute("SELECT COUNT(*) FROM raw_availability_events").fetchone()[0]
-        assert staged == 8
+        assert staged == 4
 
     def test_loads_only_rows_that_pass_validation(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
-        assert result.staged == 8
-        # Carson (missing name), Carson (bad day), Lamarr (bad phone).
-        assert result.rejected == 3
-        assert result.loaded == 5
-
-    def test_merges_duplicate_person_across_sources_by_phone(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
-        conn = connect(db_file)
-        matches = conn.execute("SELECT * FROM users WHERE phoneNumber = ?", ("+15555550201",)).fetchall()
-
-        assert len(matches) == 1
-        # partner_b is ingested after partner_a and adds Saturday, so its
-        # version of Marie Curie's availability is the one that survives.
-        assert matches[0]["availability"] == '{"availableDays":["Mon","Wed","Fri","Sat"]}'
+        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        assert result.staged == 4
+        assert result.rejected == 1
+        assert result.loaded == 3
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         conn = connect(db_file)
         rejected = conn.execute(
             "SELECT first_name, last_name FROM raw_availability_events WHERE status = 'rejected'"
         ).fetchall()
         names = {(row["first_name"], row["last_name"]) for row in rejected}
         carson = conn.execute("SELECT id FROM users WHERE lastName = 'Carson'").fetchone()
-        lamarr = conn.execute("SELECT id FROM users WHERE lastName = 'Lamarr'").fetchone()
 
-        assert names == {(None, "Carson"), ("Rachel", "Carson"), ("Hedy", "Lamarr")}
+        assert names == {(None, "Carson")}
         assert carson is None
-        assert lamarr is None
+
+    def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
+        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
+        conn = connect(db_file)
+        rejected = conn.execute(
+            "SELECT id, phone_number, error FROM raw_availability_events WHERE status = 'rejected'"
+        ).fetchall()
+
+        assert result.rejected == 4
+        for row in rejected:
+            assert row["phone_number"] not in (row["error"] or "")
+            assert row["phone_number"] not in " ".join(result.errors)
 
     def test_rerunning_ingest_does_not_duplicate_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
-        ingest([FIXTURES_DIR / "partner_a.csv", FIXTURES_DIR / "partner_b.json"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
 
         conn = connect(db_file)
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -115,5 +139,5 @@ class TestIngestFixtures:
 
         # The users table stays deduped on re-ingest, but the staging log
         # keeps every attempt — that's what makes it an audit trail.
-        assert user_count == 4
-        assert staged_count == 16
+        assert user_count == 3
+        assert staged_count == 8

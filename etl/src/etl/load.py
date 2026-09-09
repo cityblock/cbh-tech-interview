@@ -4,8 +4,8 @@
 unconditionally — it is an append-only log, so re-ingesting a file is safe
 and auditable. `load_pending` then validates each pending row and, if it
 passes, upserts it into `users` keyed on the *normalized phone number* rather
-than the staging row's id, so the same person arriving from two feeds — or
-the same feed ingested twice — lands as one row, not a duplicate.
+than the staging row's id, so re-ingesting the same feed lands as one row,
+not a duplicate.
 """
 
 import json
@@ -77,7 +77,7 @@ def _validate_and_upsert(conn: sqlite3.Connection, event: sqlite3.Row) -> str | 
         return "missing phone number"
     phone = normalize_phone(event["phone_number"])
     if phone is None:
-        return f"unparseable phone number: {event['phone_number']!r}"
+        return "unparseable phone number"
 
     raw_days = json.loads(event["availability_raw"])
     days = normalize_days(raw_days)
