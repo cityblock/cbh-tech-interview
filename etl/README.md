@@ -23,26 +23,25 @@ each rejection.
 ## How it fits together
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph feeds["Partner feeds (data/fixtures/)"]
     partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]
   end
 
   subgraph pipeline["ETL pipeline"]
+    direction LR
     extract["extract.py"]
     record["RawAvailabilityRecord"]
     transform["transform.py"]
     load["load.py"]
+    extract --> record --> transform --> load
   end
 
   subgraph db["SQLite users table"]
-    users["id · firstName · lastName<br/>phoneNumber · availability"]
+    users["users"]
   end
 
   partner_a --> extract
-  extract --> record
-  record --> transform
-  transform --> load
   load -->|"upsert by normalized phone"| users
 ```
 
@@ -50,6 +49,16 @@ Partner files stay in their native shape on disk. The pipeline parses each row
 into a common `RawAvailabilityRecord`, validates and normalizes phone numbers
 and available days, then upserts valid rows into `users`. Rows that fail
 validation are rejected with a reason and never written to the table.
+
+## Users table
+
+| column | type |
+| ------ | ---- |
+| id | UUID |
+| firstName | string |
+| lastName | string |
+| phoneNumber | phoneNumber |
+| availability | jsonb — `{ availableDays: [string] }` |
 
 ## What it does
 
