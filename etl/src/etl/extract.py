@@ -1,8 +1,8 @@
 """Parsers that turn partner feed files into `RawAvailabilityRecord`s.
 
-The active feed (`partner_b`) is CSV with schedule windows and
-blocked-date columns. A JSON parser is also registered for `.json` files if you
-pass one explicitly. Simple day-list CSV feeds are supported too. Parsing only pulls fields out
+The default feed (`partner_a`) is a simple day-list CSV. `partner_b` adds
+schedule windows and blocked-date columns. A JSON parser is also registered for
+`.json` files if you pass one explicitly. Parsing only pulls fields out
 of whatever shape the file has — it does not validate or normalize them. That happens in `transform.py` during load, so a parse failure and a
 validation failure are never confused with each other.
 """

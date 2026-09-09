@@ -22,11 +22,17 @@ each rejection.
 
 ## What it does
 
-The default run ingests `data/fixtures/partner_b.csv` — nurse
-availability submitted by clinic practice managers (`first_name`, `last_name`,
-`phone`, `timezone`, `schedule_windows`, `blocked_dates`). Schedule windows use
-`Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
-`start:end:reason`.
+The default run ingests `data/fixtures/partner_a.csv` — a simple partner feed
+with `first_name`, `last_name`, `phone`, and `days` (`Day` segments separated
+by `;`).
+
+A second feed is also available:
+
+- `data/fixtures/partner_b.csv` — nurse availability submitted by clinic
+  practice managers (`first_name`, `last_name`, `phone`, `timezone`,
+  `schedule_windows`, `blocked_dates`). Schedule windows use
+  `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
+  `start:end:reason`.
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
    `RawAvailabilityRecord`, without validating or normalizing anything.
@@ -35,11 +41,6 @@ availability submitted by clinic practice managers (`first_name`, `last_name`,
    rejecting anything that doesn't pass, then upserts the valid rows into
    `users` keyed on the *normalized phone number* — re-ingesting the same
    feed lands as one row, not a duplicate.
-
-`src/etl/db.py` creates `users` (`CREATE TABLE IF NOT EXISTS`) on connect
-and records `0001_users` in `_migrations`, so the pipeline can run
-standalone before the Node app has ever booted without Knex trying to
-recreate `users` on the next `pnpm dev`.
 
 ## Layout
 
