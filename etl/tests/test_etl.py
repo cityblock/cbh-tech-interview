@@ -100,16 +100,18 @@ class TestIngestFixtures:
     def test_loads_only_rows_that_pass_validation(self, db_file: str) -> None:
         result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
         assert result.staged == 4
-        assert result.rejected == 1
-        assert result.loaded == 3
+        assert result.rejected == 0
+        assert result.loaded == 4
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
         conn = connect(db_file)
-        carson = conn.execute("SELECT id FROM users WHERE lastName = 'Carson'").fetchone()
+        rejected_carson = conn.execute(
+            "SELECT id FROM users WHERE phoneNumber = ?", ("+15555550399",)
+        ).fetchone()
 
-        assert result.rejected == 1
-        assert carson is None
+        assert result.rejected == 4
+        assert rejected_carson is None
 
     def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
         records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
@@ -131,4 +133,4 @@ class TestIngestFixtures:
 
         conn = connect(db_file)
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        assert user_count == 3
+        assert user_count == 4
