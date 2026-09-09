@@ -42,17 +42,14 @@ uv run etl data/fixtures/scheds_pract_mgr.csv
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
    `RawAvailabilityRecord`, without validating or normalizing anything.
-2. **Stage** (`src/etl/load.py::stage`) — writes every extracted row to
-   `raw_availability_events`, an append-only log, so re-ingesting a file is
-   safe and auditable.
-3. **Transform + load** (`src/etl/transform.py`, `src/etl/load.py::load_pending`) —
-   validates and normalizes each pending row (phone number, availability
-   days), rejecting anything that doesn't pass, then upserts the valid rows
-   into `users` keyed on the *normalized phone number* — re-ingesting the
-   same feed lands as one row, not a duplicate.
+2. **Transform + load** (`src/etl/transform.py`, `src/etl/load.py::load`) —
+   validates and normalizes each row (phone number, availability days),
+   rejecting anything that doesn't pass, then upserts the valid rows into
+   `users` keyed on the *normalized phone number* — re-ingesting the same
+   feed lands as one row, not a duplicate.
 
-`src/etl/db.py` creates both tables (`CREATE TABLE IF NOT EXISTS`) on
-connect and records `0001_users` in `_migrations`, so the pipeline can run
+`src/etl/db.py` creates `users` (`CREATE TABLE IF NOT EXISTS`) on connect
+and records `0001_users` in `_migrations`, so the pipeline can run
 standalone before the Node app has ever booted without Knex trying to
 recreate `users` on the next `pnpm dev`.
 
@@ -63,8 +60,8 @@ src/etl/
   db.py         — SQLite connection + schema
   extract.py    — partner feed parsers
   transform.py  — phone/day validation and normalization
-  load.py       — stage + upsert into `users`
-  pipeline.py   — orchestrates extract → stage → load; `etl` CLI entry point
+  load.py       — validate + upsert into `users`
+  pipeline.py   — orchestrates extract → load; `etl` CLI entry point
 data/fixtures/  — partner feed fixtures, git-tracked
 tests/          — pytest suite
 ```

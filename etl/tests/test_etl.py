@@ -93,11 +93,9 @@ class TestEnsureSchema:
 
 
 class TestIngestFixtures:
-    def test_stages_every_row_regardless_of_validity(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
-        conn = connect(db_file)
-        staged = conn.execute("SELECT COUNT(*) FROM raw_availability_events").fetchone()[0]
-        assert staged == 4
+    def test_processes_every_row_regardless_of_validity(self, db_file: str) -> None:
+        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        assert result.staged == 4
 
     def test_loads_only_rows_that_pass_validation(self, db_file: str) -> None:
         result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
@@ -106,28 +104,26 @@ class TestIngestFixtures:
         assert result.loaded == 3
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
         conn = connect(db_file)
-        rejected = conn.execute(
-            "SELECT first_name, last_name FROM raw_availability_events WHERE status = 'rejected'"
-        ).fetchall()
-        names = {(row["first_name"], row["last_name"]) for row in rejected}
         carson = conn.execute("SELECT id FROM users WHERE lastName = 'Carson'").fetchone()
 
-        assert names == {(None, "Carson")}
+        assert result.rejected == 1
         assert carson is None
 
     def test_rejection_errors_omit_phone_numbers(self, db_file: str) -> None:
+        records = extract(FIXTURES_DIR / "scheds_pract_mgr.csv")
         result = ingest([FIXTURES_DIR / "scheds_pract_mgr.csv"], db_file)
-        conn = connect(db_file)
-        rejected = conn.execute(
-            "SELECT id, phone_number, error FROM raw_availability_events WHERE status = 'rejected'"
-        ).fetchall()
+        rejected_phones = {
+            record.phone_number
+            for record in records
+            if record.phone_number
+        }
 
         assert result.rejected == 4
-        for row in rejected:
-            assert row["phone_number"] not in (row["error"] or "")
-            assert row["phone_number"] not in " ".join(result.errors)
+        error_text = " ".join(result.errors)
+        for phone in rejected_phones:
+            assert phone not in error_text
 
     def test_rerunning_ingest_does_not_duplicate_users(self, db_file: str) -> None:
         ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
@@ -135,9 +131,4 @@ class TestIngestFixtures:
 
         conn = connect(db_file)
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-        staged_count = conn.execute("SELECT COUNT(*) FROM raw_availability_events").fetchone()[0]
-
-        # The users table stays deduped on re-ingest, but the staging log
-        # keeps every attempt — that's what makes it an audit trail.
         assert user_count == 3
-        assert staged_count == 8
