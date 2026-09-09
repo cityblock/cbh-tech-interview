@@ -22,11 +22,17 @@ each rejection.
 
 ## What it does
 
-The default run ingests `data/fixtures/partner_b.csv` — nurse
-availability submitted by clinic practice managers (`first_name`, `last_name`,
-`phone`, `timezone`, `schedule_windows`, `blocked_dates`). Schedule windows use
-`Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
-`start:end:reason`.
+The default run ingests `data/fixtures/partner_a.csv` — a simple partner feed
+with `first_name`, `last_name`, `phone`, and `days` (`Day` segments separated
+by `;`).
+
+A second feed is also available:
+
+- `data/fixtures/partner_b.csv` — nurse availability submitted by clinic
+  practice managers (`first_name`, `last_name`, `phone`, `timezone`,
+  `schedule_windows`, `blocked_dates`). Schedule windows use
+  `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
+  `start:end:reason`.
 
 1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
    `RawAvailabilityRecord`, without validating or normalizing anything.
