@@ -42,11 +42,6 @@ A second feed is also available:
    `users` keyed on the *normalized phone number* — re-ingesting the same
    feed lands as one row, not a duplicate.
 
-`src/etl/db.py` creates `users` (`CREATE TABLE IF NOT EXISTS`) on connect
-and records `0001_users` in `_migrations`, so the pipeline can run
-standalone before the Node app has ever booted without Knex trying to
-recreate `users` on the next `pnpm dev`.
-
 ## Layout
 
 ```
