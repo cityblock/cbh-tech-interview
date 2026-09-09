@@ -35,10 +35,10 @@ class TestTransform:
 
 class TestExtract:
     def test_parses_csv_feed(self) -> None:
-        records = extract(FIXTURES_DIR / "sched_self_serv_app.csv")
+        records = extract(FIXTURES_DIR / "partner_a.csv")
         assert len(records) == 4
         marie = next(r for r in records if r.last_name == "Curie")
-        assert marie.source == "sched_self_serv_app"
+        assert marie.source == "partner_a"
         assert marie.phone_number == "(555) 555-0201"
         assert marie.availability_raw == ["Mon", "Wed", "Fri"]
 
@@ -94,17 +94,17 @@ class TestEnsureSchema:
 
 class TestIngestFixtures:
     def test_processes_every_row_regardless_of_validity(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
         assert result.staged == 4
 
     def test_loads_only_rows_that_pass_validation(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
         assert result.staged == 4
         assert result.rejected == 1
         assert result.loaded == 3
 
     def test_rejected_rows_never_reach_users(self, db_file: str) -> None:
-        result = ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        result = ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
         conn = connect(db_file)
         carson = conn.execute("SELECT id FROM users WHERE lastName = 'Carson'").fetchone()
 
@@ -126,8 +126,8 @@ class TestIngestFixtures:
             assert phone not in error_text
 
     def test_rerunning_ingest_does_not_duplicate_users(self, db_file: str) -> None:
-        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
-        ingest([FIXTURES_DIR / "sched_self_serv_app.csv"], db_file)
+        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
+        ingest([FIXTURES_DIR / "partner_a.csv"], db_file)
 
         conn = connect(db_file)
         user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
