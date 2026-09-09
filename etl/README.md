@@ -26,8 +26,6 @@ each rejection.
 flowchart LR
   subgraph feeds["Partner feeds (data/fixtures/)"]
     partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]
-    partner_b["partner_b.csv<br/>schedule_windows, blocked_dates, …"]
-    partner_json["*.json<br/>contact, phoneNumber, availableDays"]
   end
 
   subgraph pipeline["ETL pipeline"]
@@ -42,8 +40,6 @@ flowchart LR
   end
 
   partner_a --> extract
-  partner_b --> extract
-  partner_json --> extract
   extract --> record
   record --> transform
   transform --> load
