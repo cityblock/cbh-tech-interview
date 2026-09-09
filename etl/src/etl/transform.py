@@ -1,4 +1,4 @@
-"""Validation and normalization for staged availability rows.
+"""Validation and normalization for extracted availability rows.
 
 A row that parsed successfully in `extract.py` can still fail here: a phone
 number that isn't a real phone number, a day name outside the canonical set,

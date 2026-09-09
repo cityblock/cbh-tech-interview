@@ -47,23 +47,5 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
     conn.execute(
         "INSERT OR IGNORE INTO _migrations (name) VALUES ('0001_users')"
     )
-    # Append-only ingestion log populated by this package. Every row a
-    # partner feed produces is staged here first, whether or not it ends up
-    # in `users` — that keeps ingestion auditable and lets the same file be
-    # re-ingested without losing the record of previous attempts.
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS raw_availability_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            source TEXT NOT NULL,
-            first_name TEXT,
-            last_name TEXT,
-            phone_number TEXT,
-            availability_raw TEXT NOT NULL,
-            raw_payload TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending',
-            error TEXT
-        )
-        """
-    )
+    conn.execute("DROP TABLE IF EXISTS raw_availability_events")
     conn.commit()
