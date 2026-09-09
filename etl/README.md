@@ -20,6 +20,41 @@ uv run etl data/fixtures/partner_b.csv   # or ingest specific files
 It prints how many rows were staged, loaded, and rejected, plus a reason for
 each rejection.
 
+## How it fits together
+
+```mermaid
+flowchart LR
+  subgraph feeds["Partner feeds (data/fixtures/)"]
+    partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]
+    partner_b["partner_b.csv<br/>schedule_windows, blocked_dates, …"]
+    partner_json["*.json<br/>contact, phoneNumber, availableDays"]
+  end
+
+  subgraph pipeline["ETL pipeline"]
+    extract["extract.py"]
+    record["RawAvailabilityRecord"]
+    transform["transform.py"]
+    load["load.py"]
+  end
+
+  subgraph db["SQLite users table"]
+    users["id · firstName · lastName<br/>phoneNumber · availability"]
+  end
+
+  partner_a --> extract
+  partner_b --> extract
+  partner_json --> extract
+  extract --> record
+  record --> transform
+  transform --> load
+  load -->|"upsert by normalized phone"| users
+```
+
+Partner files stay in their native shape on disk. The pipeline parses each row
+into a common `RawAvailabilityRecord`, validates and normalizes phone numbers
+and available days, then upserts valid rows into `users`. Rows that fail
+validation are rejected with a reason and never written to the table.
+
 ## What it does
 
 The default run ingests `data/fixtures/partner_a.csv` — a simple partner feed
