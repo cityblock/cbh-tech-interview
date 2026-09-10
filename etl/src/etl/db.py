@@ -10,7 +10,7 @@ import os
 import sqlite3
 from pathlib import Path
 
-DEFAULT_DB_FILE = Path(__file__).resolve().parents[3] / "packages" / "server" / "data" / "app.sqlite"
+DEFAULT_DB_FILE = Path(__file__).resolve().parents[3] / "data" / "app.sqlite"
 
 
 def connect(db_file: str | None = None) -> sqlite3.Connection:
