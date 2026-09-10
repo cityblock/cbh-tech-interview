@@ -21,7 +21,7 @@ each rejection.
 ## How it fits together
 
 ```mermaid
-flowchart TB subgraph feeds["Partner feeds (data/fixtures/)"] partner_a["partner_a.csv<br/>first_name, last_name, phone, days"] end subgraph pipeline["ETL pipeline"] direction LR extract["extract.py"] record["RawAvailabilityRecord"] transform["transform.py"] load["load.py"] extract --> record --> transform --> load end subgraph db["SQLite users table"] users["users"] end partner_a --> extract load -->|"upsert by normalized phone"| users
+flowchart TB; subgraph feeds["Partner feeds (data/fixtures/)"]; partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]; end; subgraph pipeline["ETL pipeline"]; extract["extract.py"]; record["RawAvailabilityRecord"]; transform["transform.py"]; load["load.py"]; extract --> record --> transform --> load; end; subgraph db["SQLite users table"]; users["users"]; end; partner_a --> extract; load -->|"upsert by normalized phone"| users;
 ```
 
 Partner files stay in their native shape on disk. The pipeline parses each row
