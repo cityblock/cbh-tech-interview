@@ -1,81 +1,34 @@
 # Availability ETL
 
-A standalone Python pipeline that ingests nurse availability feeds into the
-`users` table.
+A standalone Python pipeline that ingests nursing on-call schedules from our partner clinics into the `users` table.
 
 ## Prereqs
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 
-## Run it
-
-```bash
-uv sync
-uv run etl data/fixtures/partner_b.csv  # ingest specific files
-```
-
-This prints how many rows were staged, loaded, and rejected, plus a reason for
-each rejection.
-
-## How it fits together
-
-```mermaid
-flowchart TB; subgraph feeds["Partner feeds (data/fixtures/)"]; partner_a["partner_a.csv<br/>first_name, last_name, phone, days"]; end; subgraph pipeline["ETL pipeline"]; extract["extract.py"]; record["RawAvailabilityRecord"]; transform["transform.py"]; load["load.py"]; extract --> record --> transform --> load; end; subgraph db["SQLite users table"]; users["users"]; end; partner_a --> extract; load -->|"upsert by normalized phone"| users;
-```
-
-Partner files stay in their native shape on disk. The pipeline parses each row
-into a common `RawAvailabilityRecord`, validates and normalizes phone numbers
-and available days, then upserts valid rows into `users`. Rows that fail
-validation are rejected with a reason and never written to the table.
-
-## Users table
-
-| column | type |
-| ------ | ---- |
-| id | UUID |
-| firstName | string |
-| lastName | string |
-| phoneNumber | phoneNumber |
-| availability | jsonb — `{ availableDays: [string] }` |
-
-## What it does
-
-The default run ingests `data/fixtures/partner_a.csv` — a simple partner feed
-with `first_name`, `last_name`, `phone`, and `days` (`Day` segments separated
-by `;`).
-
-A second, more complex feed is also available:
-
-- `data/fixtures/partner_b.csv` — with `first_name`, `last_name`, `phone`, `timezone`,
-  `schedule_windows`, and `blocked_dates`. Schedule windows use
-  `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
-  `start:end:reason`.
-
-1. **Extract** (`src/etl/extract.py`) — parses each feed's rows into a common
-   `RawAvailabilityRecord`, without validating or normalizing anything.
-2. **Transform + load** (`src/etl/transform.py`, `src/etl/load.py::load`) —
-   validates and normalizes each row (phone number, availability days),
-   rejecting anything that doesn't pass, then upserts the valid rows into
-   `users` keyed on the *normalized phone number* — re-ingesting the same
-   feed lands as one row, not a duplicate.
-
 ## Layout
 
 ```
 src/etl/
-  db.py         — SQLite connection + schema
-  extract.py    — partner feed parsers
+  db.py         — SQLite connection + user table shell
+  extract.py    — partner clinic feed parsers
   transform.py  — phone/day validation and normalization
-  load.py       — validate + upsert into `users`
-  pipeline.py   — orchestrates extract → load; `etl` CLI entry point
-data/fixtures/  — partner feed fixtures, git-tracked
+  load.py       — upsert into `users`
+  pipeline.py   — orchestrates extract → transform → load; `etl` CLI entry point
+data/feeds/  — sample partner clinic feeds, git-tracked
 tests/          — pytest suite
 ```
 
-## Commands
+## Partner clinic data feeds
 
-| Command         | What it does                             |
-| --------------- | ----------------------------------------- |
-| `uv run etl`    | Runs the ETL against the default fixture feed |
-| `uv run pytest` | Runs the test suite                       |
+Two sample feeds live in `data/feeds/`:
+
+- `partner_clinic_a.csv` — a simple feed with `first_name`, `last_name`, `phone`,
+and `days` (`Day` segments separated by `;`). This is the default when you run
+`uv run etl`.
+- `partner_clinic_b.csv` — a more complex feed with `first_name`, `last_name`,
+`phone`, `timezone`, `schedule_windows`, and `blocked_dates`. Schedule windows
+use `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
+`start:end:reason`. Pass its path explicitly to ingest it.
+

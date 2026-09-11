@@ -1,7 +1,7 @@
 [project]
 name = "etl"
 version = "0.1.0"
-description = "Availability ETL: ingest partner feeds into the interview app's SQLite users table"
+description = "Availability ETL: ingest partner clinic feeds into the interview app's SQLite users table"
 requires-python = ">=3.12"
 dependencies = []
 
