@@ -36,7 +36,7 @@ Web: <http://localhost:5173> · GraphQL: <http://localhost:4000/graphql>
 
 ```bash
 cd etl
-uv sync
+uv sync --extra dev
 uv run etl
 ```
 
