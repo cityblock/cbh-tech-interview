@@ -1,7 +1,7 @@
 # Cityblock Tech Interview — After Hours Support
 
 A monorepo for the System Design Interview: a GraphQL web app for managing nurse
-availability, plus a Python ETL pipeline that ingests partner feeds into the
+availability, plus a Python ETL pipeline that ingests partner clinic feeds into the
 same `users` table.
 
 The candidate-facing PRD lives in [`PRD.md`](./PRD.md) (also shared as a Google
@@ -15,7 +15,7 @@ Doc at the start of the interview).
 | Component | Path | What it does |
 | --------- | ---- | ------------ |
 | Web app | [`packages/`](./packages/) | React UI + GraphQL server for viewing and editing nurse availability |
-| ETL pipeline | [`etl/`](./etl/) | Ingests partner CSV/JSON feeds into the shared `users` table |
+| ETL pipeline | [`etl/`](./etl/) | Ingests partner clinic CSV/JSON feeds into the shared `users` table |
 
 Both components read and write the same file-backed SQLite database
 (`data/app.sqlite` by default), so rows ingested by the ETL show up immediately
@@ -43,7 +43,7 @@ uv run etl
 See the component READMEs for full setup, configuration, and layout details:
 
 - [`packages/README.md`](./packages/README.md) — web app and GraphQL server
-- [`etl/README.md`](./etl/README.md) — partner feed ingestion pipeline
+- [`etl/README.md`](./etl/README.md) — partner clinic feed ingestion pipeline
 
 ## Layout
 
@@ -51,7 +51,7 @@ See the component READMEs for full setup, configuration, and layout details:
 packages/
   server/   GraphQL Yoga + Knex (better-sqlite3, file-backed)
   web/      Vite + React 18 + Apollo Client
-etl/        Standalone Python pipeline that ingests partner feeds into `users`
+etl/        Standalone Python pipeline that ingests partner clinic feeds into `users`
 ```
 
 ## Shared configuration
