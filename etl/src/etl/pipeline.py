@@ -1,6 +1,6 @@
 """Orchestrates the availability ETL: extract, transform, then load into `users`.
 
-Run via `uv run etl` (defaults to every file in `data/feeds/`) or
+Run via `uv run etl` (defaults to `data/feeds/partner_clinic_a.csv`) or
 `uv run etl <path> [<path> ...]` to ingest specific files.
 """
 
