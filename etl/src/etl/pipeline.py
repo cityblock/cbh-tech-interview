@@ -1,6 +1,6 @@
 """Orchestrates the availability ETL: extract, transform, then load into `users`.
 
-Run via `uv run etl` (defaults to `data/feeds/partner_clinic_a.csv`) or
+Run via `uv run etl` (defaults to both partner clinic CSVs in `data/feeds/`) or
 `uv run etl <path> [<path> ...]` to ingest specific files.
 """
 
@@ -14,7 +14,10 @@ from etl.load import load
 from etl.transform import transform
 
 FEEDS_DIR = Path(__file__).resolve().parents[2] / "data" / "feeds"
-DEFAULT_FEEDS = [FEEDS_DIR / "partner_clinic_a.csv"]
+DEFAULT_FEEDS = [
+    FEEDS_DIR / "partner_clinic_a.csv",
+    FEEDS_DIR / "partner_clinic_b.csv",
+]
 
 
 @dataclass
