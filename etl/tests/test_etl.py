@@ -4,7 +4,7 @@ import pytest
 
 from etl.db import connect
 from etl.extract import extract
-from etl.pipeline import FEEDS_DIR, ingest
+from etl.pipeline import DEFAULT_FEEDS, FEEDS_DIR, ingest
 from etl.transform import normalize_days, normalize_phone
 
 
@@ -93,6 +93,16 @@ class TestEnsureSchema:
 
 
 class TestIngestFeeds:
+    def test_default_run_includes_both_partner_feeds(self, db_file: str) -> None:
+        assert [path.name for path in DEFAULT_FEEDS] == [
+            "partner_clinic_a.csv",
+            "partner_clinic_b.csv",
+        ]
+        result = ingest(DEFAULT_FEEDS, db_file)
+        assert result.staged == 13
+        assert result.loaded == 9
+        assert result.rejected == 4
+
     def test_processes_every_row_regardless_of_validity(self, db_file: str) -> None:
         result = ingest([FEEDS_DIR / "partner_clinic_a.csv"], db_file)
         assert result.staged == 4

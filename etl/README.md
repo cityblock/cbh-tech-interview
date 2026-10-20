@@ -19,7 +19,7 @@ from our partner clinics, loading cleaned and standardized records into the
 
 ## Data
 
-Two partner clinic feeds live in `data/feeds/`:
+The default `uv run etl` run ingests both partner clinic feeds in `data/feeds/`:
 
 1. `partner_clinic_a.csv` — `first_name`, `last_name`, `phone`, and `days`. Day
    segments separated by `;`.
@@ -27,10 +27,6 @@ Two partner clinic feeds live in `data/feeds/`:
    `schedule_windows`, and `blocked_dates`. Schedule windows use
    `Day:HH:MM-HH:MM` segments separated by `;`. Blocked dates use
    `start:end:reason`.
-
-Only `partner_clinic_a.csv` is wired into the default `uv run etl` run.
-`partner_clinic_b.csv` is on disk but not part of that default run — pass its
-path explicitly to ingest it.
 
 ## Layout
 
@@ -50,8 +46,8 @@ tests/          — pytest suite
 ```mermaid
 flowchart TB
     subgraph feeds ["Partner clinic feeds"]
-        feed_a["partner_clinic_a.csv<br>wired into default run"]
-        feed_b["partner_clinic_b.csv<br>not being processed"]
+        feed_a["partner_clinic_a.csv"]
+        feed_b["partner_clinic_b.csv"]
     end
 
     subgraph etl ["ETL pipeline"]
@@ -69,7 +65,7 @@ flowchart TB
     end
 
     feed_a --> extract
-    feed_b -. "pass path to ingest" .-> extract
+    feed_b --> extract
     load -->|"upsert by normalized phone"| users
 ```
 
@@ -90,10 +86,21 @@ table.
 
 ```bash
 uv sync --extra dev
-uv run etl                                          # default: partner_clinic_a.csv
-uv run etl data/feeds/partner_clinic_b.csv          # ingest the second feed explicitly
+uv run etl                                          # both feeds in data/feeds/
+uv run etl data/feeds/partner_clinic_a.csv          # ingest a specific file
 uv run pytest
 ```
 
 `uv run etl` prints how many rows were staged, loaded, and rejected, plus a
 reason for each rejection.
+
+Loaded rows land in `../data/app.sqlite` (repo-root `data/app.sqlite`). Query
+them with the `sqlite3` CLI:
+
+```bash
+sqlite3 ../data/app.sqlite "SELECT firstName, lastName, phoneNumber, availability FROM users;"
+```
+
+`availability` is stored as text containing JSON, such as
+`{"availableDays":["Mon","Wed"]}`. If `DB_FILE` is set, query that path
+instead.
